@@ -1,0 +1,37 @@
+variables:
+    ProjectName: PoshC2_DLLs
+    MSBuild: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\amd64\msbuild.exe'
+    7z: 'C:\Program Files\7-Zip\7z.exe'
+
+stages:
+    - build
+  
+build:
+    stage: build
+    only:
+        - master
+        - dev
+    script:
+        - '& "$msbuild" /p:Configuration=Release /p:Platform=x64 /p:TargetFramework=v4.0 $ProjectName.sln'
+        - '& "$msbuild" /p:Configuration=Release /p:Platform=x86 /p:TargetFramework=v4.0 $ProjectName.sln'
+    after_script:       
+        - 'powershell -c { Import-Module "C:\Tools\Powershell\ConvertTo-Shellcode.ps1"; Get-ChildItem Public -filter *.dll|%{$bytes = ConvertTo-Shellcode -File $_.FullName; [io.file]::WriteAllBytes( "Public/$($_.BaseName)_Shellcode.bin".replace("_dll",""), $bytes) } }'
+        
+        - 'powershell -c { Get-ChildItem Public -filter *.dll|%{$b = gc $_.FullName -Encoding Byte; [System.Convert]::ToBase64String($b)|out-file "Public/$($_.BaseName).b64" -encoding ascii } }'
+        - 'powershell -c { Get-ChildItem Public -filter *.bin|%{$b = gc $_.FullName -Encoding Byte; [System.Convert]::ToBase64String($b)|out-file "Public/$($_.BaseName).b64" -encoding ascii } }'
+               
+        - '& "$7z" a -r -tzip Public.zip Public'
+        - 'ls Public'
+
+    artifacts:
+        paths:
+            - Public/Sharp_v2_x86_dll.b64
+            - Public/Sharp_v2_x86_Shellcode.b64  
+            - Public/Sharp_v2_x64_dll.b64    
+            - Public/Sharp_v2_x64_Shellcode.b64
+            - Public/Sharp_v4_x86_dll.b64
+            - Public/Sharp_v4_x86_Shellcode.b64  
+            - Public/Sharp_v4_x64_dll.b64    
+            - Public/Sharp_v4_x64_Shellcode.b64
+      
+          
