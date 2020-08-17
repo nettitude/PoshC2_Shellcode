@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{85773EB7-B159-45FE-96CD-11BAD51DA6DE}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Core</RootNamespace>
+    <AssemblyName>Core</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.DirectoryServices.AccountManagement" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.ServiceProcess" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Arp\Core.cs" />
+    <Compile Include="Arp\ArpScanner.cs" />
+    <Compile Include="Common\Core.cs" />
+    <Compile Include="Common\DispatchAttribute.cs" />
+    <Compile Include="CredPopper\Credential.cs" />
+    <Compile Include="CredPopper\CredentialManager.cs" />
+    <Compile Include="CredPopper\CredentialPersistence.cs" />
+    <Compile Include="CredPopper\CredentialResult.cs" />
+    <Compile Include="CredPopper\CredentialSaveOption.cs" />
+    <Compile Include="CredPopper\CredentialType.cs" />
+    <Compile Include="CredPopper\GlobalSuppressions.cs" />
+    <Compile Include="CredPopper\Natives\Advapi32.cs" />
+    <Compile Include="CredPopper\Natives\Credential.cs" />
+    <Compile Include="CredPopper\Natives\CredentialSafeHandle.cs" />
+    <Compile Include="CredPopper\Natives\CredentialUIFlags.cs" />
+    <Compile Include="CredPopper\Natives\CredentialUIInfo.cs" />
+    <Compile Include="CredPopper\Natives\CredentialUIReturnCodes.cs" />
+    <Compile Include="CredPopper\Natives\Credui.cs" />
+    <Compile Include="CredPopper\Natives\PromptForWindowsCredentialsFlags.cs" />
+    <Compile Include="Host\SSLInspection.cs" />
+    <Compile Include="PSee\ClrVer.cs" />
+    <Compile Include="Common\Comms.cs" />
+    <Compile Include="Core.cs" />
+    <Compile Include="Injection\CreateRemoteThread.cs" />
+    <Compile Include="CredPopper\CredPopper.cs" />
+    <Compile Include="Host\Get-ServicePerms.cs" />
+    <Compile Include="Host\Get-UserInfo.cs" />
+    <Compile Include="ProcessHandler\GetProcessList.cs" />
+    <Compile Include="Host\IdleTime.cs" />
+    <Compile Include="Injection\Inject.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="PSee\PSee.cs" />
+    <Compile Include="PSee\PSeeMainClass.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Host\Screenshot.cs" />
+    <Compile Include="Common\Timer.cs" />
+    <Compile Include="ProcessHandler\Unhooker.cs" />
+    <Compile Include="WMI\Core.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <COMReference Include="IWshRuntimeLibrary">
+      <Guid>{F935DC20-1CF0-11D0-ADB9-00C04FD58A0B}</Guid>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>False</Isolated>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
