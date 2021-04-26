@@ -192,17 +192,18 @@ namespace Core.Common
                 var lTypCM = AppDomain.CurrentDomain.GetAssemblies().LastOrDefault(assembly => assembly.GetName().Name.Contains("dropper_cs"));
                 if (outputBytes != null)
                 {
-                    var sOut = lTypCM.GetType("Program").InvokeMember("Exec", BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Static, null, null, new object[] { null, taskId, null, outputBytes }).ToString();
+                    lTypCM.GetType("Program").InvokeMember("Exec", BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Static, null, null, new object[] { null, taskId, null, outputBytes });
                 }
                 else
                 {
-                    var sOut = lTypCM.GetType("Program").InvokeMember("Exec", BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Static, null, null, new object[] { output, taskId, null, null }).ToString();
+                    lTypCM.GetType("Program").InvokeMember("Exec", BindingFlags.Public | BindingFlags.InvokeMethod | BindingFlags.Static, null, null, new object[] { output, taskId, null, null });
                 }
             }
             catch (NullReferenceException e)
             {
+                Console.WriteLine($"{e}");
                 if (!string.IsNullOrEmpty(output))
-                {
+                {                    
                     Console.WriteLine($"{output}");
                 }               
             }

@@ -9,7 +9,7 @@ using Core.Common;
 
 namespace Core
 {
-    class Program
+    public class Program
     {
         public static Dictionary<string, string> arguments = new Dictionary<string, string>();
 
@@ -79,7 +79,7 @@ namespace Core
                 Console.WriteLine("[!] No command found in core");
                 goto end;
             }
-            catch (NullReferenceException) { }
+            catch (NullReferenceException e) { Console.WriteLine($"NullReferenceException Error in help: {e}"); }
             catch (Exception e) { Console.WriteLine($"Error in help: {e}"); }
 
             runmethod:

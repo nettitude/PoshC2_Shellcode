@@ -42,7 +42,7 @@ namespace PSeeLibrary
                 { "Architecture OS", (is64BitOperatingSystem) ? "64bit" : "32Bit" },
                 { $"Architecture PID {Process.GetCurrentProcess().Id} ", (is64BitProcess) ? "64bit" : "32Bit" },
                 { $"PID", Process.GetCurrentProcess().Id.ToString()},
-                { "Time", DateTime.Now.ToLongTimeString()},
+                { "Date/Time", DateTime.Now.ToString()},
 			//	{ $"Time Zone ID", localZone.Id.ToString()},
 				//{ $"Time Zone", localZone.DisplayName.ToString()},
 				{ $"System Boot Time", DateTime.Now.AddMilliseconds(-Environment.TickCount).ToString()}
