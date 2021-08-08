@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Security.Principal;
 using System.Diagnostics;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace Core.ProcessHandler
 {
@@ -144,6 +146,38 @@ namespace Core.ProcessHandler
                 if (processHandle != IntPtr.Zero)
                 {
                     CloseHandle(processHandle);
+                }
+            }
+        }
+        public static void DllSearcher(List<string> checks)
+        {
+            List<string> results = new List<string>();
+            Process[] localAll = Process.GetProcesses();
+            foreach (var proc in localAll)
+            {
+                try
+                {
+                    foreach (var module in proc.Modules)
+                    {
+                        string modulename = module.ToString().Replace("System.Diagnostics.ProcessModule (", "").Replace(")", "").ToLower();
+                        if (checks.Contains(modulename))
+                        {
+                            results.Add(string.Format(modulename));
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    //Console.WriteLine("Access Denied"); 
+                }
+                if (results.Count > 0)
+                {
+                    Console.WriteLine("\nProcess Name: {0} & PID:{1}", proc.ProcessName, proc.Id);
+                    foreach (string r in results)
+                    {
+                        Console.WriteLine("Found: {0}", r);
+                    }
+                    results.Clear();
                 }
             }
         }

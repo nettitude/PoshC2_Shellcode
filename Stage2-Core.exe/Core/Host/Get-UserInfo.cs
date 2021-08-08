@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Management;
 using System.DirectoryServices;
 using System.DirectoryServices.ActiveDirectory;
+using System.Collections;
 
 namespace Core.Host
 {
@@ -96,13 +97,18 @@ namespace Core.Host
 
 
                 }
-                catch { }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Error: {e.Message}");
+                }
 
                 try
                 {
                     Console.WriteLine("\r\n===================================");
                     Console.WriteLine($"Domain Password Policy ({Environment.UserDomainName})");
                     Console.WriteLine("===================================");
+
+                    Console.WriteLine($"Using DirectoryEntry: WinNT://{Environment.UserDomainName}");
 
                     DirectoryEntry root = new DirectoryEntry($"WinNT://{Environment.UserDomainName}");
                     Console.WriteLine("Name: " + root.Properties["Name"].Value);
@@ -114,12 +120,27 @@ namespace Core.Host
                     Console.WriteLine("AutoUnlockInterval: " + (int)root.Properties["AutoUnlockInterval"].Value / 60);
                     Console.WriteLine("LockoutObservationInterval: " + (int)root.Properties["LockoutObservationInterval"].Value / 60);
                 }
-                catch { }
+                catch(Exception e) {
+                    Console.WriteLine($"Error: {e.Message}");
+                }
 
-            }
+                try
+                {
+                    Console.WriteLine("\r\n===================================");
+                    Console.WriteLine("GetEnvironmentVariables: ");
+                    Console.WriteLine("\r\n===================================");
+                    foreach (DictionaryEntry de in Environment.GetEnvironmentVariables())
+                    {
+                        Console.WriteLine("{0} = {1}", de.Key, de.Value);
+                    }                        
+                }
+                catch (Exception e) {
+                    Console.WriteLine($"Error GetEnvironmentVariables: {e.Message}");                
+                }
+        }
             catch (Exception ex)
             {
-                Console.WriteLine("  Error: {0}", ex);
+                Console.WriteLine("Error: {0}", ex);
             }
         }
     }

