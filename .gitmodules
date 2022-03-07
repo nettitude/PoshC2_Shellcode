@@ -1,6 +1,0 @@
-[submodule "Mimikatz"]
-	path = Mimikatz
-	url = https://github.com/gentilkiwi/mimikatz.git
-[submodule "SharpSploit"]
-	path = SharpSploit
-	url = https://github.com/cobbr/SharpSploit.git

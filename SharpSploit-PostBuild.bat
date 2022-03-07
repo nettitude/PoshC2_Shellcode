@@ -1,1 +1,0 @@
-copy SharpSploit\SharpSploit\bin\Release\net40\SharpSploit.dll Modules\
