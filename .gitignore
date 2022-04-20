@@ -17,6 +17,11 @@
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+Private/
+Debug/
+DebugV2/
+Release/
+ReleaseV2/
 x64/
 x86/
 bld/
